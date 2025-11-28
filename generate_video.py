@@ -1,5 +1,6 @@
 import os
 import cv2
+from tqdm import trange
 
 
 def images_to_video(image_dir, output_path):
@@ -25,14 +26,14 @@ def images_to_video(image_dir, output_path):
 
 
 def main():
-    episode_index = 1
-    episode_save_dir = os.path.join(os.path.dirname(__file__), "episodes", f"episode_{episode_index}")
-    camera_1_dir = os.path.join(episode_save_dir, "camera_1")
-    video_path_1 = os.path.join(episode_save_dir, "camera_1.mp4")
-    camera_2_dir = os.path.join(episode_save_dir, "camera_2")
-    video_path_2 = os.path.join(episode_save_dir, "camera_2.mp4")
-    images_to_video(camera_1_dir, video_path_1)
-    images_to_video(camera_2_dir, video_path_2)
+    for episode_index in trange(5):
+        episode_save_dir = os.path.join(os.path.dirname(__file__), "episodes", f"episode_{episode_index}")
+        camera_1_dir = os.path.join(episode_save_dir, "camera_1")
+        video_path_1 = os.path.join(episode_save_dir, "camera_1.mp4")
+        camera_2_dir = os.path.join(episode_save_dir, "camera_2")
+        video_path_2 = os.path.join(episode_save_dir, "camera_2.mp4")
+        images_to_video(camera_1_dir, video_path_1)
+        images_to_video(camera_2_dir, video_path_2)
 
 
 if __name__ == "__main__":

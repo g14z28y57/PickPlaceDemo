@@ -25,8 +25,9 @@ class SimScene:
         self.create_floor()
         self.bin_place = self.create_bin_place()
         self.create_lights()
-        self.camera_1 = self.create_camera(camera_name="Camera1", camera_position=(30, 0, 40), camera_lookat=(0, 0, 0))
-        self.camera_2 = self.create_camera(camera_name="Camera2", camera_position=(0, 30, 40), camera_lookat=(0, 0, 0))
+        self.camera_1 = self.create_camera(camera_name="Camera1", camera_position=(30, 0, 20), camera_lookat=(0, 0, 0))
+        self.camera_2 = self.create_camera(camera_name="Camera2", camera_position=(0, 30, 20), camera_lookat=(0, 0, 0))
+        self.set_rendering()
 
     @staticmethod
     def clear_scene():
@@ -102,8 +103,8 @@ class SimScene:
         mat_bin_place = bpy.data.materials.new(name="GreenMaterial")
         mat_bin_place.use_nodes = True
         bsdf_bin_place = mat_bin_place.node_tree.nodes["Principled BSDF"]
-        bsdf_bin_place.inputs['Base Color'].default_value = (0.0, 0.9, 0.2, 1)
-        bsdf_bin_place.inputs['Roughness'].default_value = 0.2
+        bsdf_bin_place.inputs['Base Color'].default_value = (0.0, 1.0, 0.0, 1)
+        bsdf_bin_place.inputs['Roughness'].default_value = 0.8
         bsdf_bin_place.inputs['Metallic'].default_value = 0.0
         bin_place.data.materials.append(mat_bin_place)
         return bin_place
@@ -132,9 +133,10 @@ class SimScene:
         # ---------------------- 渲染设置 ----------------------
         self.scene.render.engine = 'CYCLES'
         self.scene.cycles.device = 'GPU'          # 如果你有支持的显卡
-        self.scene.cycles.samples = 64            # 渲染质量（可根据需要调高）
-        self.scene.render.resolution_x = 640
-        self.scene.render.resolution_y = 480
+        self.scene.cycles.samples = 16             # 渲染质量（可根据需要调高）
+        self.scene.cycles.preview_samples = 16
+        self.scene.render.resolution_x = 256
+        self.scene.render.resolution_y = 256
         self.scene.render.resolution_percentage = 100
         self.scene.render.film_transparent = False
         self.scene.render.image_settings.file_format = 'PNG'
@@ -150,7 +152,7 @@ class SimScene:
 
     def shot(self, output_path):
         self.scene.render.filepath = output_path
-        bpy.ops.render.render(write_still=True)
+        bpy.ops.render.render(write_still=True, animation=False)
 
     def shot_1(self, output_path):
         self.scene.camera = self.camera_1
@@ -169,17 +171,17 @@ class SimScene:
 
     def move_object(self, dx, dy, dz):
         self.object.location[0] += dx
-        self.object.location[0] += dy
-        self.object.location[0] += dz
+        self.object.location[1] += dy
+        self.object.location[2] += dz
 
     def robot_arm_to_pick_object(self):
         current_position = self.robot_arm.location
         target_position = self.object.location.copy()
-        target_position[2] += 0.5 * ROBOT_ARM_SIZE[2]
+        target_position[2] = 1.0 + 0.5 * ROBOT_ARM_SIZE[2]
         return target_position - current_position
 
     def robot_arm_to_place_object(self):
         current_position = self.robot_arm.location
         target_position = self.bin_place.location.copy()
-        target_position[2] += 0.5 + 0.5 * ROBOT_ARM_SIZE[2]
+        target_position[2] = 1.0 + 0.5 * ROBOT_ARM_SIZE[2]
         return target_position - current_position
