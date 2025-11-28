@@ -1,0 +1,6 @@
+venv/
+.venv/
+*.whl
+*.png
+__pycache__/
+.idea/
