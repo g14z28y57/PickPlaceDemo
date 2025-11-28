@@ -33,11 +33,11 @@ class ResidualBlock(nn.Module):
 class ResNet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=6, stride=2, padding=3, bias=False)
-        self.stage1 = ResidualBlock(32, 64, 2)
-        self.stage2 = ResidualBlock(64, 128, 2)
-        self.stage3 = ResidualBlock(128, 256, 2)
-        self.stage4 = ResidualBlock(256, 512, 2)
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=6, stride=2, padding=3, bias=False)
+        self.stage1 = ResidualBlock(32, 64)
+        self.stage2 = ResidualBlock(64, 128)
+        self.stage3 = ResidualBlock(128, 256)
+        self.stage4 = ResidualBlock(256, 512)
         self.pooling = nn.AdaptiveAvgPool2d((1, 1))
 
         self._initialize_weights()
@@ -61,13 +61,61 @@ class ResNet(nn.Module):
         out = self.stage4(out)
 
         # 最终层
-        out = self.avgpool(out)
+        out = self.pooling(out)
         out = torch.flatten(out, 1)
 
         return out
 
 
-if __name__ == '__main__':
+class BottleneckBlock(nn.Module):
+    def __init__(self, dim1, dim2):
+        super().__init__()
+        self.layers = nn.Sequential(
+            nn.Linear(dim1, dim2),
+            nn.BatchNorm1d(dim2),
+            nn.ReLU(inplace=True),
+            nn.Linear(dim2, dim1),
+            nn.BatchNorm1d(dim1)
+        )
+
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        out = self.layers(x) + x
+        out = self.relu(out)
+        return out
+
+
+class MLP(nn.Module):
+    def __init__(self, in_dim, h_dim, out_dim, num_layers):
+        super().__init__()
+        self.in_proj = nn.Linear(in_dim, h_dim)
+        self.layers = nn.ModuleList([BottleneckBlock(h_dim, 2 * h_dim) for _ in range(num_layers)])
+        self.out_proj = nn.Linear(h_dim, out_dim)
+
+    def forward(self, x):
+        x = self.in_proj(x)
+        for layer in self.layers:
+            x = layer(x)
+        x = self.out_proj(x)
+        return x
+
+
+def main():
+    device = "cuda"
     model = ResNet()
-    input_tensor = torch.randn(1, 3, 512, 512)
-    output = model(input_tensor)
+    model = model.to(device)
+    input_tensor = torch.randn(1, 3, 512, 512).to(device)
+    with torch.no_grad():
+        output = model(input_tensor)
+        print(output.shape)
+
+
+if __name__ == '__main__':
+    device = "cuda"
+    model = MLP(512, 32, 5, 4)
+    model = model.to(device)
+    input_tensor = torch.randn(13, 512).to(device)
+    with torch.no_grad():
+        output = model(input_tensor)
+        print(output.shape)
