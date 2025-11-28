@@ -1,7 +1,11 @@
-import os
 import math
 import bpy
 from mathutils import Vector
+INIT_OBJECT_Z = 0.5
+INIT_ROBOT_ARM_LOCATION = (5, -5, 6)
+ROBOT_ARM_SIZE = (1, 1, 4)
+BIN_SIZE = 2
+BIN_LOCATION = (8, 8, 0.01)
 
 
 def set_camera_lookat(camera, target: Vector):
@@ -11,13 +15,15 @@ def set_camera_lookat(camera, target: Vector):
 
 
 class SimScene:
-    def __init__(self, init_object_x, init_object_y):
+    def __init__(self, object_init_x, object_init_y):
         self.clear_scene()
         self.scene = bpy.context.scene
-        self.object = self.create_object(init_object_x, init_object_y)
+        self.object_init_x = object_init_x
+        self.object_init_y = object_init_y
+        self.object = self.create_object(object_init_x, object_init_y)
         self.robot_arm = self.create_robot_arm()
         self.create_floor()
-        self.create_bin_place()
+        self.bin_place = self.create_bin_place()
         self.create_lights()
         self.camera_1 = self.create_camera(camera_name="Camera1", camera_position=(30, 0, 40), camera_lookat=(0, 0, 0))
         self.camera_2 = self.create_camera(camera_name="Camera2", camera_position=(0, 30, 40), camera_lookat=(0, 0, 0))
@@ -38,7 +44,7 @@ class SimScene:
     @staticmethod
     def create_object(init_x, init_y):
         # ---------------------- 创建蓝色立方体 ----------------------
-        bpy.ops.mesh.primitive_cube_add(size=1, location=(init_x, init_y, 0.5))
+        bpy.ops.mesh.primitive_cube_add(size=1, location=(init_x, init_y, INIT_OBJECT_Z))
         cubic_object = bpy.context.active_object
         cubic_object.name = "BlueCube"
 
@@ -54,10 +60,10 @@ class SimScene:
     @staticmethod
     def create_robot_arm():
         # ---------------------- 创建红色夹爪 ----------------------
-        bpy.ops.mesh.primitive_cube_add(size=1, location=(5, -5, 6))
+        bpy.ops.mesh.primitive_cube_add(size=1, location=INIT_ROBOT_ARM_LOCATION)
         robot_arm = bpy.context.active_object
         robot_arm.name = "RobotArm"
-        robot_arm.scale = (1, 1, 4)
+        robot_arm.scale = ROBOT_ARM_SIZE
 
         mat_robot_arm = bpy.data.materials.new(name="RedMaterial")
         mat_robot_arm.use_nodes = True
@@ -74,7 +80,7 @@ class SimScene:
         bpy.ops.mesh.primitive_plane_add(size=20, location=(0, 0, 0))
         floor = bpy.context.active_object
         floor.name = "GrayFloor"
-        floor.scale = (1, 1, 1)  # 做出一个很大的平面
+        floor.scale = (1, 1, 1)
 
         mat_floor = bpy.data.materials.new(name="GrayMaterial")
         mat_floor.use_nodes = True
@@ -88,10 +94,10 @@ class SimScene:
     @staticmethod
     def create_bin_place():
         # ---------------------- 创建物体放置区域 ----------------------
-        bpy.ops.mesh.primitive_plane_add(size=2, location=(8, 8, 0.01))
+        bpy.ops.mesh.primitive_plane_add(size=1, location=BIN_LOCATION)
         bin_place = bpy.context.active_object
         bin_place.name = "BinPlace"
-        bin_place.scale = (1, 1, 1)  # 做出一个很大的平面
+        bin_place.scale = (BIN_SIZE, BIN_SIZE, 1)
 
         mat_bin_place = bpy.data.materials.new(name="GreenMaterial")
         mat_bin_place.use_nodes = True
@@ -107,7 +113,7 @@ class SimScene:
         # 1. 强阳光（关键光）
         bpy.ops.object.light_add(type='SUN', location=(1000, -1000, 1000))
         sun = bpy.context.object
-        sun.data.energy = 3.0
+        sun.data.energy = 4.0
         sun.data.angle = math.pi / 6  # 约30度，柔和一点
         sun.rotation_euler = (math.pi / 4, math.pi / 6, 0)
 
@@ -145,7 +151,6 @@ class SimScene:
     def shot(self, output_path):
         self.scene.render.filepath = output_path
         bpy.ops.render.render(write_still=True)
-        print(f"screen shot saved at：{output_path}")
 
     def shot_1(self, output_path):
         self.scene.camera = self.camera_1
@@ -167,19 +172,14 @@ class SimScene:
         self.object.location[0] += dy
         self.object.location[0] += dz
 
-    def get_robot_arm_target_position(self):
+    def robot_arm_to_pick_object(self):
+        current_position = self.robot_arm.location
+        target_position = self.object.location.copy()
+        target_position[2] += 0.5 * ROBOT_ARM_SIZE[2]
+        return target_position - current_position
 
-
-def main():
-    scene = SimScene()
-    save_path = os.path.join(os.path.dirname(__file__), "ScreenShot1.png")
-    scene.shot_1(save_path)
-    scene.move_robot_arm(dx=3, dy=0, dz=1)
-    save_path = os.path.join(os.path.dirname(__file__), "ScreenShot2.png")
-    scene.shot_1(save_path)
-    # save_path = os.path.join(os.path.dirname(__file__), "ScreenShot2.png")
-    # scene.shot_2(save_path)
-
-
-if __name__ == "__main__":
-    main()
+    def robot_arm_to_place_object(self):
+        current_position = self.robot_arm.location
+        target_position = self.bin_place.location.copy()
+        target_position[2] += 0.5 + 0.5 * ROBOT_ARM_SIZE[2]
+        return target_position - current_position
