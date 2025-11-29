@@ -23,7 +23,6 @@ def inference(episode_save_dir, scene, model, device, action_min, action_max):
 
     os.makedirs(os.path.join(episode_save_dir, "camera_1"), exist_ok=True)
     os.makedirs(os.path.join(episode_save_dir, "camera_2"), exist_ok=True)
-    robot_arm_speed = 0.1
     robot_arm_state_record = []
 
     frame_count = 0
@@ -48,19 +47,19 @@ def inference(episode_save_dir, scene, model, device, action_min, action_max):
         img2 = normalize_image(img2, device)
         img2 = torch.unsqueeze(img2, dim=0)
 
-        action = model(img1, img2, state)
+        action, next_catch_state, next_task_state = model(img1, img2, state)
         action = (action * 0.5 + 0.5) * (action_max - action_min) + action_min
-        action = action.squeeze(0).cpu().numpy()
-        robot_arm_position_delta = action[:3].tolist()
+        action = action.squeeze(0).cpu().numpy().tolist()
+        next_catch_state = round(catch_state.reshape(-1).cpu().numpy().item())
+        next_task_state = round(task_state.reshape(-1).cpu().numpy().item())
 
-        pos_delta = robot_arm_speed * normalize_vector(robot_arm_position_delta)
-        scene.move_robot_arm(dx=pos_delta[0], dy=pos_delta[1], dz=pos_delta[2])
+        scene.move_robot_arm(dx=action[0], dy=action[1], dz=action[2])
         if catch_state == 1:
-            scene.move_object(dx=pos_delta[0], dy=pos_delta[1], dz=pos_delta[2])
+            scene.move_object(dx=action[0], dy=action[1], dz=action[2])
         frame_count += 1
 
-        catch_state = round(action[3].item())
-        task_state = round(action[4].item())
+        catch_state = next_catch_state
+        task_state = next_task_state
 
     data = {
         "robot_arm_state": robot_arm_state_record,
@@ -76,8 +75,6 @@ def inference(episode_save_dir, scene, model, device, action_min, action_max):
 def main():
     stat_path = "stat.npz"
     stat = np.load(stat_path, allow_pickle=True)
-    state_min = stat["state_min"]
-    state_max = stat["state_max"]
     action_min = stat["action_min"]
     action_max = stat["action_max"]
     device = "cuda"
@@ -87,7 +84,7 @@ def main():
     init_object_y = random.uniform(-4, 4)
     scene = SimScene(object_init_x=init_object_x, object_init_y=init_object_y)
     episode_save_dir = os.path.join(os.path.dirname(__file__), "real_time_test")
-    inference(episode_save_dir, scene, model, device, state_min, state_max, action_min, action_max)
+    inference(episode_save_dir, scene, model, device, action_min, action_max)
 
 
 if __name__ == "__main__":

@@ -38,7 +38,7 @@ class ResNet(nn.Module):
         self.stage1 = ResidualBlock(16, 32)
         self.stage2 = ResidualBlock(32, 64)
         self.stage3 = ResidualBlock(64, 128)
-        self.stage4 = ResidualBlock(128, 32)
+        self.stage4 = ResidualBlock(128, 64)
         self.pooling = nn.AdaptiveAvgPool2d((1, 1))
 
     def forward(self, x):
@@ -91,12 +91,13 @@ class MLP(nn.Module):
 class VisionActionModel(nn.Module):
     def __init__(self):
         super().__init__()
+        d_model = 32
         self.image_encoder = ResNet()
-        self.feature_projector = nn.Linear(32 * 2 + 5, 16)
-        self.feature_fuser = MLP(in_dim=16, h_dim=32, num_layers=2)
-        self.action_predictor = nn.Sequential(nn.Linear(16, 3), nn.Tanh())
-        self.catch_state_predictor = nn.Sequential(nn.Linear(16, 1), nn.Sigmoid())
-        self.task_state_predictor = nn.Sequential(nn.Linear(16, 1), nn.Sigmoid())
+        self.feature_projector = nn.Linear(64 * 2 + 5, d_model)
+        self.feature_fuser = MLP(in_dim=d_model, h_dim=d_model*4, num_layers=3)
+        self.action_predictor = nn.Sequential(nn.Linear(d_model, 3), nn.Tanh())
+        self.catch_state_predictor = nn.Sequential(nn.Linear(d_model, 1), nn.Sigmoid())
+        self.task_state_predictor = nn.Sequential(nn.Linear(d_model, 1), nn.Sigmoid())
 
     def forward(self, img1, img2, state):
         f1 = self.image_encoder(img1)
