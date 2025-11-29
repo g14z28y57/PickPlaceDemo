@@ -10,12 +10,12 @@ class PickPlaceDataset(Dataset):
         self.img1 = data["img1"]
         self.img2 = data["img2"]
 
-        self.state = data["state"]
+        self.state = data["state"].astype(np.float32)
         self.state_min = np.min(self.state, axis=0)
         self.state_max = np.max(self.state, axis=0)
         self.normalize_state()
 
-        self.action = data["action"]
+        self.action = data["action"].astype(np.float32)
         self.action_min = np.min(self.action, axis=0)
         self.action_max = np.max(self.action, axis=0)
         self.normalize_action()
@@ -38,7 +38,7 @@ class PickPlaceDataset(Dataset):
     @staticmethod
     def normalize_image(img):
         img = img / 255.0 * 2 - 1
-        return img
+        return img.astype(np.float32)
 
     def __getitem__(self, index):
         return self.normalize_image(self.img1[index]), self.normalize_image(self.img2[index]), self.state[index], self.action[index]
