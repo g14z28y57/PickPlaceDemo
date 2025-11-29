@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 def train():
     device = "cuda"
-    batch_size = 64
+    batch_size = 128
     num_epochs = 200
     learning_rate = 1e-3
     save_every = 1
@@ -28,7 +28,6 @@ def train():
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     for epoch in range(num_epochs):
-        loss_cache = 0
         progress_bar = tqdm(enumerate(dataloader),
                             total=len(dataloader),
                             desc=f"Epoch {epoch + 1}/{num_epochs}",
@@ -50,12 +49,12 @@ def train():
             loss = loss_action + loss_catch + loss_task
             loss.backward()
             optimizer.step()
-            loss_cache += loss.item()
 
             # 实时更新进度条上的 loss
             progress_bar.set_postfix({
-                "loss": f"{loss.item():.4f}",
-                'avg_loss': f"{loss_cache / (i + 1):.4f}"
+                "lss_act": f"{loss_action.item():.4f}",
+                "lss_cat": f"{loss_catch.item():.4f}",
+                "lss_tsk": f"{loss_task.item():.4f}",
             })
 
         if epoch % save_every == 0:
