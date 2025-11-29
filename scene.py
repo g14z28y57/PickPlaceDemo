@@ -137,8 +137,8 @@ class SimScene:
         self.scene.cycles.denoiser = 'OPTIX'
         self.scene.view_layers["ViewLayer"].cycles.use_denoising = True
 
-        self.scene.render.resolution_x = 192
-        self.scene.render.resolution_y = 192
+        self.scene.render.resolution_x = 128
+        self.scene.render.resolution_y = 128
         self.scene.render.image_settings.file_format = 'PNG'
 
     @staticmethod
@@ -187,11 +187,11 @@ class SimScene:
     def robot_arm_to_pick_object(self):
         current_position = self.robot_arm.location
         target_position = self.object.location.copy()
-        target_position[2] = 1.0 + 0.5 * ROBOT_ARM_HEIGHT
+        target_position[2] = OBJECT_SIZE + 0.5 * ROBOT_ARM_HEIGHT
         return target_position - current_position
 
     def robot_arm_to_place_object(self):
         current_position = self.robot_arm.location
         target_position = self.bin_place.location.copy()
-        target_position[2] = 1.0 + 0.5 * ROBOT_ARM_HEIGHT
+        target_position[2] = OBJECT_SIZE + 0.5 * ROBOT_ARM_HEIGHT
         return target_position - current_position
