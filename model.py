@@ -104,9 +104,7 @@ class VisionActionModel(nn.Module):
         self.image_encoder2 = ResNet()
         self.feature_projector = nn.Linear(69, 16)
         self.feature_fuser = MLP(in_dim=16, h_dim=64, num_layers=4)
-        self.action_predictor = nn.Sequential(nn.Linear(16, 3), nn.Tanh())
-        self.catch_state_predictor = nn.Sequential(nn.Linear(16, 1), nn.Softmax(dim=-1))
-        self.task_state_predictor = nn.Sequential(nn.Linear(16, 1), nn.Softmax(dim=-1))
+        self.action_predictor = nn.Sequential(nn.Linear(16, 5), nn.Tanh())
 
     def forward(self, img1, img2, state):
         f1 = self.image_encoder1(img1)
@@ -115,21 +113,4 @@ class VisionActionModel(nn.Module):
         f = self.feature_projector(f)
         f = self.feature_fuser(f)
         action = self.action_predictor(f)
-        catch_state = self.catch_state_predictor(f)
-        task_state = self.task_state_predictor(f)
-        return torch.concatenate([action, catch_state, task_state], dim=-1)
-
-
-def main():
-    device = "cuda"
-    model = VisionActionModel()
-    model = model.to(device)
-    img1 = torch.randn(13, 3, 512, 512).to(device)
-    img2 = torch.randn(13, 3, 512, 512).to(device)
-    state = torch.randn(13, 5).to(device)
-    next_state = model(img1, img2, state)
-    print(next_state.shape)
-
-
-if __name__ == '__main__':
-    main()
+        return action

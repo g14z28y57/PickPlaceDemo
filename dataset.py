@@ -43,13 +43,3 @@ class PickPlaceDataset(Dataset):
     def __getitem__(self, index):
         return self.normalize_image(self.img1[index]), self.normalize_image(self.img2[index]), self.state[index], self.action[index]
 
-
-def main():
-    npz_path = "data.npz"
-    dataset = PickPlaceDataset(npz_path)
-    img1, img2, state, action = dataset[0]
-    print(img1.shape, img2.shape, state.shape, action.shape)
-
-
-if __name__ == "__main__":
-    main()
