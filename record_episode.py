@@ -3,7 +3,7 @@ import os
 import random
 from scene import SimScene
 import numpy as np
-from util import normalize_vector
+from util import normalize_vector, save_json
 
 
 def record_episode(episode_save_dir, scene):
@@ -62,8 +62,7 @@ def record_episode(episode_save_dir, scene):
     }
 
     state_save_path = os.path.join(episode_save_dir, "robot_state.json")
-    with open(state_save_path, "w") as f:
-        json.dump(data, f)
+    save_json(data, state_save_path)
 
 
 def main():

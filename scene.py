@@ -130,15 +130,14 @@ class SimScene:
         self.scene.render.film_transparent = False
 
     def set_rendering(self):
-        # ---------------------- 渲染设置 ----------------------
         self.scene.render.engine = 'CYCLES'
-        self.scene.cycles.device = 'GPU'          # 如果你有支持的显卡
-        self.scene.cycles.samples = 16             # 渲染质量（可根据需要调高）
-        self.scene.cycles.preview_samples = 16
+
+        self.scene.cycles.samples = 32
+        self.scene.cycles.denoiser = 'OPTIX'
+        self.scene.view_layers["ViewLayer"].cycles.use_denoising = True
+
         self.scene.render.resolution_x = 256
         self.scene.render.resolution_y = 256
-        self.scene.render.resolution_percentage = 100
-        self.scene.render.film_transparent = False
         self.scene.render.image_settings.file_format = 'PNG'
 
     @staticmethod

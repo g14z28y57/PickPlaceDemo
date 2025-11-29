@@ -95,7 +95,8 @@ class VisionActionModel(nn.Module):
         self.feature_projector = nn.Linear(32 * 2 + 5, 16)
         self.feature_fuser = MLP(in_dim=16, h_dim=32, num_layers=2)
         self.action_predictor = nn.Sequential(nn.Linear(16, 3), nn.Tanh())
-        self.state_predictor = nn.Linear(16, 2)
+        self.catch_state_predictor = nn.Sequential(nn.Linear(16, 1), nn.Sigmoid())
+        self.task_state_predictor = nn.Sequential(nn.Linear(16, 1), nn.Sigmoid())
 
     def forward(self, img1, img2, state):
         f1 = self.image_encoder(img1)
@@ -104,6 +105,6 @@ class VisionActionModel(nn.Module):
         f = self.feature_projector(f)
         f = self.feature_fuser(f)
         action = self.action_predictor(f)
-        next_state = self.state_predictor(f)
-        out = torch.concatenate([action, next_state], dim=-1)
-        return out
+        catch_state = self.catch_state_predictor(f)
+        task_state = self.task_state_predictor(f)
+        return action, catch_state, task_state

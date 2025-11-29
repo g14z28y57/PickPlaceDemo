@@ -7,6 +7,11 @@ def read_json(p):
         return json.load(f)
 
 
+def save_json(data, p):
+    with open(p, "w") as f:
+        json.dump(data, f)
+
+
 def compute_normal_component(base_vector, vector):
     unit_base_vector = base_vector / np.linalg.norm(base_vector)
     dot_product = np.dot(vector, unit_base_vector)

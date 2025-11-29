@@ -17,10 +17,7 @@ def normalize_image(img, device):
 
 
 @torch.inference_mode()
-def inference(episode_save_dir, scene, model, device,
-              state_min, state_max, action_min, action_max):
-    state_min = torch.tensor(state_min, dtype=torch.float32, device=device)
-    state_max = torch.tensor(state_max, dtype=torch.float32, device=device)
+def inference(episode_save_dir, scene, model, device, action_min, action_max):
     action_min = torch.tensor(action_min, dtype=torch.float32, device=device)
     action_max = torch.tensor(action_max, dtype=torch.float32, device=device)
 
@@ -37,9 +34,7 @@ def inference(episode_save_dir, scene, model, device,
         state = list(scene.robot_arm.location)
         state.append(catch_state)
         state.append(task_state)
-        state = torch.tensor(state, dtype=torch.float32, device=device)
-        state = (state - state_min) / (state_max - state_min) * 2 - 1
-        state = torch.unsqueeze(state, dim=0)
+        state = torch.tensor(state, dtype=torch.float32, device=device).reshape(1, -1)
 
         save_path_1 = os.path.join(episode_save_dir, "camera_1", f"{frame_count}.png")
         scene.shot_1(save_path_1)

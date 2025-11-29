@@ -1,32 +1,28 @@
+import cv2
 import numpy as np
 from torch.utils.data import Dataset
+from util import read_json
 
 
 class PickPlaceDataset(Dataset):
-    def __init__(self, npz_path, stat_path):
+    def __init__(self, json_path, stat_path):
         super().__init__()
-        data = np.load(npz_path)
+        data = read_json(json_path)
 
         self.img1 = data["img1"]
         self.img2 = data["img2"]
 
-        self.state = data["state"].astype(np.float32)
-        self.state_min = np.min(self.state, axis=0)
-        self.state_max = np.max(self.state, axis=0)
-        self.normalize_state()
+        self.state = np.array(data["state"], dtype=np.float32)
 
-        self.action = data["action"].astype(np.float32)
+        self.action = np.array(data["action"], dtype=np.float32)
         self.action_min = np.min(self.action, axis=0)
         self.action_max = np.max(self.action, axis=0)
         self.normalize_action()
 
+        self.catch_state = np.array(data["catch_state"], dtype=np.float32).reshape(-1, 1)
+        self.task_state = np.array(data["task_state"], dtype=np.float32).reshape(-1, 1)
         self.length = self.state.shape[0]
-        self.save_state(stat_path)
-
-    def normalize_state(self):
-        state_min = self.state_min.reshape(1, -1)
-        state_max = self.state_max.reshape(1, -1)
-        self.state = (self.state - state_min) / (state_max - state_min) * 2 - 1
+        self.save_stat(stat_path)
 
     def normalize_action(self):
         action_min = self.action_min.reshape(1, -1)
@@ -37,21 +33,22 @@ class PickPlaceDataset(Dataset):
         return self.length
 
     @staticmethod
-    def normalize_image(img):
+    def normalize_image(img_path):
+        img = cv2.imread(img_path)
+        img = np.transpose(img, [2, 0, 1])
         img = img / 255.0 * 2 - 1
         return img.astype(np.float32)
 
-    def save_state(self, stat_path):
-        print("state_min", self.state_min)
-        print("state_max", self.state_max)
+    def save_stat(self, stat_path):
         print("action_min", self.action_min)
         print("action_max", self.action_max)
-        np.savez(stat_path,
-                 state_min=self.state_min,
-                 state_max=self.state_max,
-                 action_min=self.action_min,
-                 action_max=self.action_max)
+        np.savez(stat_path, action_min=self.action_min, action_max=self.action_max)
 
     def __getitem__(self, index):
-        return self.normalize_image(self.img1[index]), self.normalize_image(self.img2[index]), self.state[index], self.action[index]
+        return (self.normalize_image(self.img1[index]),
+                self.normalize_image(self.img2[index]),
+                self.state[index],
+                self.action[index],
+                self.catch_state[index],
+                self.task_state[index])
 
