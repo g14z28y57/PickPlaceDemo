@@ -15,6 +15,7 @@ def train():
     save_every = 1
     print_every = 100
     checkpoint_pth = "checkpoint.pth"
+    stat_path = "stat.npz"
 
     model = VisionActionModel().to(device)
     model.train()
@@ -22,7 +23,7 @@ def train():
         model_state = torch.load(checkpoint_pth)
         model.load_state_dict(model_state)
 
-    dataset = PickPlaceDataset(npz_path="data.npz")
+    dataset = PickPlaceDataset(npz_path="data.npz", stat_path=stat_path)
     dataloader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)

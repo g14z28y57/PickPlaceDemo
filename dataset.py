@@ -3,7 +3,7 @@ from torch.utils.data import Dataset
 
 
 class PickPlaceDataset(Dataset):
-    def __init__(self, npz_path):
+    def __init__(self, npz_path, stat_path):
         super().__init__()
         data = np.load(npz_path)
 
@@ -21,6 +21,7 @@ class PickPlaceDataset(Dataset):
         self.normalize_action()
 
         self.length = self.state.shape[0]
+        self.save_state(stat_path)
 
     def normalize_state(self):
         state_min = self.state_min.reshape(1, -1)
@@ -39,6 +40,13 @@ class PickPlaceDataset(Dataset):
     def normalize_image(img):
         img = img / 255.0 * 2 - 1
         return img.astype(np.float32)
+
+    def save_state(self, stat_path):
+        np.savez(stat_path,
+                 state_min=self.state_min,
+                 state_max=self.state_max,
+                 action_min=self.action_min,
+                 action_max=self.action_max)
 
     def __getitem__(self, index):
         return self.normalize_image(self.img1[index]), self.normalize_image(self.img2[index]), self.state[index], self.action[index]

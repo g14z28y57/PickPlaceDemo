@@ -1,9 +1,10 @@
 venv/
 .venv/
-*.whl
-*.png
 __pycache__/
 .idea/
 episodes/
+real_time_test/
+*.whl
+*.png
 *.npz
 *.pth
