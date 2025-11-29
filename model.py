@@ -34,11 +34,11 @@ class ResidualBlock(nn.Module):
 class ResNet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv1 = nn.Conv2d(3, 32, kernel_size=6, stride=2, padding=3, bias=False)
-        self.stage1 = ResidualBlock(32, 64)
-        self.stage2 = ResidualBlock(64, 128)
-        self.stage3 = ResidualBlock(128, 256)
-        self.stage4 = ResidualBlock(256, 32)
+        self.conv1 = nn.Conv2d(3, 16, kernel_size=6, stride=2, padding=3, bias=False)
+        self.stage1 = ResidualBlock(16, 32)
+        self.stage2 = ResidualBlock(32, 64)
+        self.stage3 = ResidualBlock(64, 128)
+        self.stage4 = ResidualBlock(128, 32)
         self.pooling = nn.AdaptiveAvgPool2d((1, 1))
 
         self._initialize_weights()

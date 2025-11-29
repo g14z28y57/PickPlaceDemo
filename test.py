@@ -33,13 +33,13 @@ def inference(episode_save_dir, scene, model, device,
     catch_state = 0  # 1 for catching, 0 for not catching
     task_state = 0  # 1 for complete, 0 for not complete
 
-    while (frame_count < 400):
-        current_state = list(scene.robot_arm.location)
-        current_state.append(catch_state)
-        current_state.append(task_state)
-        state = torch.tensor(current_state, dtype=torch.float32, device=device)
-        state = torch.unsqueeze(state, dim=0)
+    while frame_count < 400:
+        state = list(scene.robot_arm.location)
+        state.append(catch_state)
+        state.append(task_state)
+        state = torch.tensor(state, dtype=torch.float32, device=device)
         state = (state - state_min) / (state_max - state_min) * 2 - 1
+        state = torch.unsqueeze(state, dim=0)
 
         save_path_1 = os.path.join(episode_save_dir, "camera_1", f"{frame_count}.png")
         scene.shot_1(save_path_1)
@@ -66,10 +66,6 @@ def inference(episode_save_dir, scene, model, device,
 
         catch_state = round(action[3].item())
         task_state = round(action[4].item())
-
-        if task_state == 1:
-            from IPython import embed
-            embed()
 
     data = {
         "robot_arm_state": robot_arm_state_record,
