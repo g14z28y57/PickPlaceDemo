@@ -4,6 +4,9 @@ The project is to show how to train a deep learning model to complete a two_stag
 
 We simulate the task in a virtual 3D environment. The robotic arm is simulated by a red square column. The object to be caught is simulated as a blue cube. The target place is green-colored square area on the ground.
 
+## TODO
+try action chunking
+
 ## Setup Environment
 
 ```bash
