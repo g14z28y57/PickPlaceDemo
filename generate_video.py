@@ -37,6 +37,10 @@ def main():
         video_path_2 = os.path.join(episode_save_dir, "camera_2.mp4")
         images_to_video(camera_2_dir, video_path_2)
 
+        camera_3_dir = os.path.join(episode_save_dir, "camera_3")
+        video_path_3 = os.path.join(episode_save_dir, "camera_3.mp4")
+        images_to_video(camera_3_dir, video_path_3)
+
 
 if __name__ == "__main__":
     main()
