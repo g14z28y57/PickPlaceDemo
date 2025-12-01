@@ -1,8 +1,20 @@
-# Overview
+# Pick & Place Demo
 
-The project is to show how to train a deep learning model to complete a two_stage task. The first stage is to reach and pick a cubic object on the ground. The second task is then carry the object to the target place.
+The project is to show how to train a deep learning model to complete a two-stage task. The 
+first stage is to reach and pick a cubic object on the ground. The second stage is then to 
+carry the object to the target place.
 
-We simulate the task in a virtual 3D environment. The robotic arm is simulated by a red square column. The object to be caught is simulated as a blue cube. The target place is green-colored square area on the ground.
+## Simulation Scene Description
+
+We simulate the task in a virtual 3D environment.
+
+The ground is simulated as a beige-colored 
+flat square. The robotic arm is simulated by a red-colored square column. The object to be 
+caught is simulated as a blue-colored cube. The target place is green-colored square area 
+on the ground.
+
+At the very beginning of an episode, the robotic arm is randomly placed over the ground, 
+and the object is randomly placed on the ground.
 
 ## Setup Environment
 
@@ -26,7 +38,8 @@ bash install.sh
 ```
 
 ## Generate Synthesis Data
-We choose blender rather than packages like pyvista just because blender use more modern graphic API OpenGL, not that modern, but still better than VTK used by pyvista.
+We choose blender rather than packages like pyvista just because blender use more modern 
+graphic API OpenGL, not that modern, but still better than VTK used by pyvista.
 ```bash
 python record_episode.py --num_episodes 500 --resolution 128
 ```
